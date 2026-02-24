@@ -5,7 +5,7 @@ slr_env/
 *.pyc
 
 # Dataset and Models
-"Dataset ISL/"
+Dataset ISL/
 *.npy
 *.pkl
 backend_debug.log

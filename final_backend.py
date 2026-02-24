@@ -15,28 +15,36 @@ import pyttsx3
 from collections import deque, Counter
 import string
 from flask_cors import CORS
+import joblib
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # -----------------------------
-# Load Dataset and Model
+# Normalization Logic
+# -----------------------------
+def normalize_hand(hand_landmarks):
+    """Normalize a single hand's landmarks relative to the wrist (landmark 0)"""
+    landmarks = np.array([[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark])
+    wrist = landmarks[0]
+    landmarks -= wrist
+    max_dist = np.max(np.linalg.norm(landmarks, axis=1))
+    if max_dist > 0:
+        landmarks /= max_dist
+    return landmarks.flatten()
+
+# -----------------------------
+# Load Optimized Model
 # -----------------------------
 try:
-    X = np.load("X_raw.npy")
-    y = np.load("y_raw.npy")
-    idx_to_label = {i: letter for i, letter in enumerate(string.ascii_lowercase)}
-
-    knn = KNeighborsClassifier(n_neighbors=3)
-    knn.fit(X, y)
-    print("Model loaded and trained successfully.")
+    # Load the best pre-trained model
+    model = joblib.load("ExtraTrees_optimized_model.pkl")
+    idx_to_label = {idx: letter for idx, letter in enumerate(string.ascii_uppercase)}
+    print("Optimized ExtraTrees model loaded successfully.")
 except Exception as e:
-    print(f"Error loading model/data: {e}")
-    # Initialize dummy model to prevent crash if files missing
-    X = np.zeros((10, 63))
-    y = np.zeros(10)
-    knn = KNeighborsClassifier(n_neighbors=3)
-    knn.fit(X, y)
+    print(f"Error loading optimized model: {e}")
+    # Fallback to dummy data/model if needed
+    model = None
 
 # -----------------------------
 # Mediapipe setup
@@ -127,10 +135,13 @@ def generate_frames():
             if frame_count % 10 == 0:
                 logging.info("Hand detected by MediaPipe")
 
-            for hand_landmarks in result.multi_hand_landmarks:
+            # Sort hands by x-coordinate for consistency
+            sorted_hands = sorted(result.multi_hand_landmarks, key=lambda h: h.landmark[0].x)
+            
+            for hand_landmarks in sorted_hands:
                 mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-                for lm in hand_landmarks.landmark:
-                    landmarks_all_hands.extend([lm.x, lm.y, lm.z])
+                norm_hand = normalize_hand(hand_landmarks)
+                landmarks_all_hands.extend(norm_hand)
         else:
             if frame_count % 30 == 0:
                 logging.debug("No hand detected by MediaPipe")
@@ -143,29 +154,26 @@ def generate_frames():
             stable_start_time = None
             timer_left = 0
             prediction_text = "No Hand"
-            # Optional: Allow re-detection of same letter if hand leaves and comes back?
-            # For now, let's keep last_confirmed_letter until a different letter is seen
-            # or we can clear it here if we want "A" -> "No Hand" -> "A" to work immediately.
-            # User said "continuously", implying holding the sign. 
-            # If they remove hand, they likely want to be able to do "A" again.
             last_confirmed_letter = "" 
         else:
-            # Pad to 126 features (expected by model, likely 2 hands)
-            expected_features = 126
-            if len(landmarks_all_hands) < expected_features:
-                landmarks_all_hands.extend([0.0] * (expected_features - len(landmarks_all_hands)))
+            # Pad to 126 features
+            if len(landmarks_all_hands) < 126:
+                landmarks_all_hands.extend([0.0] * (126 - len(landmarks_all_hands)))
             
-            # Truncate if somehow we have more
-            landmarks_all_hands = landmarks_all_hands[:expected_features]
-
+            landmarks_all_hands = landmarks_all_hands[:126]
             data = np.array(landmarks_all_hands).reshape(1, -1)
+
             try:
-                pred_idx = knn.predict(data)[0]
-                prob = knn.predict_proba(data).max()
-                pred_letter = idx_to_label.get(pred_idx, "?")
-                
-                if frame_count % 10 == 0:
-                    logging.debug(f"Prediction: {pred_letter} (Prob: {prob:.2f})")
+                if model:
+                    pred_label = model.predict(data)[0]
+                    # ExtraTrees doesn't give clean probabilities like KNN-predict_proba easily 
+                    # for all cases without 'predict_proba', but it's available.
+                    probs = model.predict_proba(data)
+                    prob = probs.max()
+                    pred_letter = str(pred_label)
+                    
+                    if frame_count % 10 == 0:
+                        logging.debug(f"Prediction: {pred_letter} (Prob: {prob:.2f})")
 
                 if prob > 0.7:
                     pred_history.append(pred_letter)
