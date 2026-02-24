@@ -1,66 +1,48 @@
 # SLR Project (Sign Language Recognition)
 
-This project is a Sign Language Recognition system that uses computer vision to detect hand gestures and translate them into text and speech. It features a modern Next.js frontend and a Python Flask backend.
+This project is a high-accuracy Sign Language Recognition system that uses independent hand normalization and an Extra Trees Classifier to translate hand gestures into text and speech in real-time.
 
 ## Features
--   **Real-time Hand Tracking**: Uses MediaPipe to detect hand landmarks.
--   **Gesture Classification**: Uses a K-Nearest Neighbors (KNN) algorithm to classify gestures.
--   **Modern UI**: A responsive and professional frontend built with Next.js and Tailwind CSS.
--   **Text-to-Speech**: Converts the recognized text into speech.
+-   **99.5% Accuracy**: Optimized model with wrist-relative normalization.
+-   **Real-time Hand Tracking**: Powered by MediaPipe.
+-   **Ensemble ML Model**: High-performance Extra Trees Classifier.
+-   **Full-Stack UI**: Modern Next.js interface with speech synthesis.
 
 ## Prerequisites
--   **Python 3.8+**
+-   **Python 3.8**: Required specifically for MediaPipe compatibility in this environment.
 -   **Node.js 18+** & **npm**
 -   **Webcam**
 
 ## Installation & Setup
 
-### 1. Backend Setup (Flask)
-The backend handles the video processing and machine learning model.
-
+### 1. Backend Setup
 1.  Navigate to the project root.
-2.  **Create a virtual environment** (recommended):
-    ```bash
-    python -m venv venv
-    .\venv\Scripts\activate  # Windows
-    # source venv/bin/activate # macOS/Linux
-    ```
-3.  **Install Python dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
+2.  Install dependencies: `pip install -r requirements.txt` (Ensure you use Python 3.8).
 
-### 2. Frontend Setup (Next.js)
-The frontend provides the user interface.
+### 2. Frontend Setup
+1.  Navigate to `/frontend`.
+2.  Install dependencies: `npm install`.
 
-1.  Navigate to the `frontend` directory:
-    ```bash
-    cd frontend
-    ```
-2.  **Install Node.js dependencies**:
-    ```bash
-    npm install
-    ```
+## How to Run
 
-## How to Run (Recommended)
+### Local Execution (Recommended)
+Double-click **`start_project.bat`**. This script will:
+-   Launch the Flask backend (`final_backend.py`) on port 5000.
+-   Launch the Next.js frontend on port 3000.
+-   Open the Dashboard automatically.
 
-We have created a simple **One-Click Start Script** for Windows.
-
-1.  Double-click **`start_project.bat`** in the main folder.
-2.  It will automatically:
-    -   Check if Python and npm are installed.
-    -   Start the Backend Server.
-    -   Start the Frontend Server.
-    -   Open the Dashboard in your default browser.
+### Running with Netlify/Vercel (Public Deployment)
+Since the backend requires a physical webcam and high-performance execution, we use a hybrid deployment:
+1.  **Frontend**: Deploy the `frontend/` folder to Vercel or Netlify.
+2.  **Backend Tunnel**: Run your backend locally and bridge it using:
+    -   Double-click **`start_tunnel.bat`**.
+    -   Copy the public URL provided.
+3.  **Config**: Set `NEXT_PUBLIC_API_URL` in Vercel/Netlify settings to that URL.
 
 ---
 
 ## Technical Details
-
--   **Backend**: Flask running on `http://127.0.0.1:5000`
--   **Frontend**: Next.js running on `http://localhost:3000`
--   **Communication**: The frontend uses Next.js rewrites to proxy API requests to the backend, avoiding CORS issues.
-
-## Troubleshooting
--   **Webcam not found**: Ensure no other app is using the camera.
--   **Backend connection failed**: Make sure the Flask app is running on port 5000.
+-   **Recognition Engine**: Extra Trees Classifier trained on 25k+ optimized frames.
+-   **Normalization**: Independent hand scaling for translation/scale invariance.
+-   **Backend**: Flask / Port 5000.
+-   **Frontend**: Next.js / Port 3000.
