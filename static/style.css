@@ -1,0 +1,42 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+    text-align: center;
+}
+
+h1 {
+    margin: 20px;
+    font-size: 2rem;
+    color: #333;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 30px;
+}
+
+.video {
+    border: 2px solid #333;
+    padding: 5px;
+    background: #fff;
+}
+
+.text-info {
+    text-align: left;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.suggest {
+    color: red;
+}

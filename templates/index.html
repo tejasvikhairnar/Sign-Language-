@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Language to Text & Speech</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Sign Language To Text Conversion</h1>
+
+    <div class="container">
+        <div class="video">
+            <img src="/video_feed" width="400">
+        </div>
+
+        <div class="text-info">
+            <p><b>Character:</b> <span id="char">-</span></p>
+            <p><b>Sentence:</b> <span id="sentence">-</span></p>
+            <p><b>Timer:</b> <span id="timer">0</span>s</p>
+
+            <button onclick="fetch('/clear')">Clear</button>
+            <button onclick="fetch('/speak')">Speak</button>
+            <button onclick="fetch('/add_space')">Space</button>
+        </div>
+    </div>
+
+    <script>
+        async function updateStatus() {
+            const res = await fetch('/status');
+            const data = await res.json();
+            document.getElementById('char').innerText = data.char;
+            document.getElementById('sentence').innerText = data.sentence;
+            document.getElementById('timer').innerText = data.timer;
+        }
+        setInterval(updateStatus, 500); // smooth updates
+    </script>
+</body>
+</html>

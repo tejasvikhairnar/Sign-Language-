@@ -1,0 +1,18 @@
+__pycache__/
+slr_env/
+.env
+.DS_Store
+*.pyc
+
+# Dataset and Models
+"Dataset ISL/"
+*.npy
+*.pkl
+backend_debug.log
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+.next/
